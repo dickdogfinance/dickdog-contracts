@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.12;
+pragma solidity >=0.6.12;
 
 interface IMasonry {
     function balanceOf(address _mason) external view returns (uint256);
@@ -15,11 +15,14 @@ interface IMasonry {
 
     function nextEpochPoint() external view returns (uint256);
 
-    function getTombPrice() external view returns (uint256);
+    function getPolyPrice() external view returns (uint256);
 
     function setOperator(address _operator) external;
 
-    function setLockUp(uint256 _withdrawLockupEpochs, uint256 _rewardLockupEpochs) external;
+    function setLockUp(
+        uint256 _withdrawLockupEpochs,
+        uint256 _rewardLockupEpochs
+    ) external;
 
     function stake(uint256 _amount) external;
 
@@ -31,5 +34,9 @@ interface IMasonry {
 
     function allocateSeigniorage(uint256 _amount) external;
 
-    function governanceRecoverUnsupported(address _token, uint256 _amount, address _to) external;
+    function governanceRecoverUnsupported(
+        address _token,
+        uint256 _amount,
+        address _to
+    ) external;
 }

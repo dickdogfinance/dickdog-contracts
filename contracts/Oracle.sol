@@ -31,12 +31,12 @@ contract Oracle is Epoch {
     FixedPoint.uq112x112 public price1Average;
 
     /* ========== CONSTRUCTOR ========== */
+    constructor(uint256 _period, uint256 _startTime)
+        public
+        Epoch(_period, _startTime, 0)
+    {}
 
-    constructor(
-        IUniswapV2Pair _pair,
-        uint256 _period,
-        uint256 _startTime
-    ) public Epoch(_period, _startTime, 0) {
+    function setPair(IUniswapV2Pair _pair) external onlyOperator {
         pair = _pair;
         token0 = pair.token0();
         token1 = pair.token1();
@@ -52,7 +52,11 @@ contract Oracle is Epoch {
 
     /** @dev Updates 1-day EMA price from Uniswap.  */
     function update() external checkEpoch {
-        (uint256 price0Cumulative, uint256 price1Cumulative, uint32 blockTimestamp) = UniswapV2OracleLibrary.currentCumulativePrices(address(pair));
+        (
+            uint256 price0Cumulative,
+            uint256 price1Cumulative,
+            uint32 blockTimestamp
+        ) = UniswapV2OracleLibrary.currentCumulativePrices(address(pair));
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
 
         if (timeElapsed == 0) {
@@ -62,8 +66,12 @@ contract Oracle is Epoch {
 
         // overflow is desired, casting never truncates
         // cumulative price is in (uq112x112 price * seconds) units so we simply wrap it after division by time elapsed
-        price0Average = FixedPoint.uq112x112(uint224((price0Cumulative - price0CumulativeLast) / timeElapsed));
-        price1Average = FixedPoint.uq112x112(uint224((price1Cumulative - price1CumulativeLast) / timeElapsed));
+        price0Average = FixedPoint.uq112x112(
+            uint224((price0Cumulative - price0CumulativeLast) / timeElapsed)
+        );
+        price1Average = FixedPoint.uq112x112(
+            uint224((price1Cumulative - price1CumulativeLast) / timeElapsed)
+        );
 
         price0CumulativeLast = price0Cumulative;
         price1CumulativeLast = price1Cumulative;
@@ -73,7 +81,11 @@ contract Oracle is Epoch {
     }
 
     // note this will always return 0 before update has been called successfully for the first time.
-    function consult(address _token, uint256 _amountIn) external view returns (uint144 amountOut) {
+    function consult(address _token, uint256 _amountIn)
+        external
+        view
+        returns (uint144 amountOut)
+    {
         if (_token == token0) {
             amountOut = price0Average.mul(_amountIn).decode144();
         } else {
@@ -82,13 +94,35 @@ contract Oracle is Epoch {
         }
     }
 
-    function twap(address _token, uint256 _amountIn) external view returns (uint144 _amountOut) {
-        (uint256 price0Cumulative, uint256 price1Cumulative, uint32 blockTimestamp) = UniswapV2OracleLibrary.currentCumulativePrices(address(pair));
+    function twap(address _token, uint256 _amountIn)
+        external
+        view
+        returns (uint144 _amountOut)
+    {
+        (
+            uint256 price0Cumulative,
+            uint256 price1Cumulative,
+            uint32 blockTimestamp
+        ) = UniswapV2OracleLibrary.currentCumulativePrices(address(pair));
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
         if (_token == token0) {
-            _amountOut = FixedPoint.uq112x112(uint224((price0Cumulative - price0CumulativeLast) / timeElapsed)).mul(_amountIn).decode144();
+            _amountOut = FixedPoint
+                .uq112x112(
+                    uint224(
+                        (price0Cumulative - price0CumulativeLast) / timeElapsed
+                    )
+                )
+                .mul(_amountIn)
+                .decode144();
         } else if (_token == token1) {
-            _amountOut = FixedPoint.uq112x112(uint224((price1Cumulative - price1CumulativeLast) / timeElapsed)).mul(_amountIn).decode144();
+            _amountOut = FixedPoint
+                .uq112x112(
+                    uint224(
+                        (price1Cumulative - price1CumulativeLast) / timeElapsed
+                    )
+                )
+                .mul(_amountIn)
+                .decode144();
         }
     }
 

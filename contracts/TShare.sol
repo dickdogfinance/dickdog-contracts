@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
 import "./owner/Operator.sol";
 
-contract TShare is ERC20Burnable, Operator {
+contract DogShare is ERC20Burnable, Operator {
     using SafeMath for uint256;
 
     // TOTAL MAX SUPPLY = 70,000 tSHAREs
@@ -30,8 +30,12 @@ contract TShare is ERC20Burnable, Operator {
 
     bool public rewardPoolDistributed = false;
 
-    constructor(uint256 _startTime, address _communityFund, address _devFund) public ERC20("3SHARES", "3SHARE Token") {
-        _mint(msg.sender, 1 ether); // mint 1 TOMB Share for initial pools deployment
+    constructor(
+        uint256 _startTime,
+        address _communityFund,
+        address _devFund
+    ) public ERC20("Dog Share", "sDOG") {
+        _mint(msg.sender, 1 ether); // mint 1 DOG SHARE for initial pools deployment
 
         startTime = _startTime;
         endTime = startTime + VESTING_DURATION;
@@ -39,7 +43,9 @@ contract TShare is ERC20Burnable, Operator {
         communityFundLastClaimed = startTime;
         devFundLastClaimed = startTime;
 
-        communityFundRewardRate = COMMUNITY_FUND_POOL_ALLOCATION.div(VESTING_DURATION);
+        communityFundRewardRate = COMMUNITY_FUND_POOL_ALLOCATION.div(
+            VESTING_DURATION
+        );
         devFundRewardRate = DEV_FUND_POOL_ALLOCATION.div(VESTING_DURATION);
 
         require(_devFund != address(0), "Address cannot be 0");
@@ -54,6 +60,15 @@ contract TShare is ERC20Burnable, Operator {
         communityFund = _communityFund;
     }
 
+    function setTime(uint256 _startTime) external {
+        require(msg.sender == devFund, "!dev");
+        startTime = _startTime;
+        endTime = startTime + VESTING_DURATION;
+
+        communityFundLastClaimed = startTime;
+        devFundLastClaimed = startTime;
+    }
+
     function setDevFund(address _devFund) external {
         require(msg.sender == devFund, "!dev");
         require(_devFund != address(0), "zero");
@@ -64,7 +79,9 @@ contract TShare is ERC20Burnable, Operator {
         uint256 _now = block.timestamp;
         if (_now > endTime) _now = endTime;
         if (communityFundLastClaimed >= _now) return 0;
-        _pending = _now.sub(communityFundLastClaimed).mul(communityFundRewardRate);
+        _pending = _now.sub(communityFundLastClaimed).mul(
+            communityFundRewardRate
+        );
     }
 
     function unclaimedDevFund() public view returns (uint256 _pending) {
@@ -93,7 +110,10 @@ contract TShare is ERC20Burnable, Operator {
     /**
      * @notice distribute to reward pool (only once)
      */
-    function distributeReward(address _farmingIncentiveFund) external onlyOperator {
+    function distributeReward(address _farmingIncentiveFund)
+        external
+        onlyOperator
+    {
         require(!rewardPoolDistributed, "only can distribute once");
         require(_farmingIncentiveFund != address(0), "!_farmingIncentiveFund");
         rewardPoolDistributed = true;

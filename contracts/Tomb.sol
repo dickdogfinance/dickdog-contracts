@@ -9,13 +9,13 @@ import "./lib/SafeMath8.sol";
 import "./owner/Operator.sol";
 import "./interfaces/IOracle.sol";
 
-contract Tomb is ERC20Burnable, Operator {
+contract DickDog is ERC20Burnable, Operator {
     using SafeMath8 for uint8;
     using SafeMath for uint256;
 
     // Initial distribution for the first 24h genesis pools
     uint256 public constant INITIAL_GENESIS_POOL_DISTRIBUTION = 25000 ether;
-    // Initial distribution for the day 2-5 TOMB-WFTM LP -> TOMB pool
+    // Initial distribution for the day 2-5 DOG-DOGE LP -> DOG pool
     uint256 public constant INITIAL_TOMB_POOL_DISTRIBUTION = 0 ether;
     // Distribution for airdrops wallet
     uint256 public constant INITIAL_AIRDROP_WALLET_DISTRIBUTION = 0 ether;
@@ -25,7 +25,7 @@ contract Tomb is ERC20Burnable, Operator {
 
     /* ================= Taxation =============== */
     // Address of the Oracle
-    address public tombOracle;
+    address public dogOracle;
     // Address of the Tax Office
     address public taxOffice;
 
@@ -40,8 +40,38 @@ contract Tomb is ERC20Burnable, Operator {
     bool public autoCalculateTax;
 
     // Tax Tiers
-    uint256[] public taxTiersTwaps = [0, 5e17, 6e17, 7e17, 8e17, 9e17, 9.5e17, 1e18, 1.05e18, 1.10e18, 1.20e18, 1.30e18, 1.40e18, 1.50e18];
-    uint256[] public taxTiersRates = [2000, 1900, 1800, 1700, 1600, 1500, 1500, 1500, 1500, 1400, 900, 400, 200, 100];
+    uint256[] public taxTiersTwaps = [
+        0,
+        5e17,
+        6e17,
+        7e17,
+        8e17,
+        9e17,
+        9.5e17,
+        1e18,
+        1.05e18,
+        1.10e18,
+        1.20e18,
+        1.30e18,
+        1.40e18,
+        1.50e18
+    ];
+    uint256[] public taxTiersRates = [
+        2000,
+        1900,
+        1800,
+        1700,
+        1600,
+        1500,
+        1500,
+        1500,
+        1500,
+        1400,
+        900,
+        400,
+        200,
+        100
+    ];
 
     // Sender addresses excluded from Tax
     mapping(address => bool) public excludedAddresses;
@@ -54,14 +84,20 @@ contract Tomb is ERC20Burnable, Operator {
     }
 
     modifier onlyOperatorOrTaxOffice() {
-        require(isOperator() || taxOffice == msg.sender, "Caller is not the operator or the tax office");
+        require(
+            isOperator() || taxOffice == msg.sender,
+            "Caller is not the operator or the tax office"
+        );
         _;
     }
 
     /**
      * @notice Constructs the TOMB ERC-20 contract.
      */
-    constructor(uint256 _taxRate, address _taxCollectorAddress) public ERC20("3OMB", "3OMB Token") {
+    constructor(uint256 _taxRate, address _taxCollectorAddress)
+        public
+        ERC20("DickDoge Token", "DOG")
+    {
         // Mints 1 TOMB to contract creator for initial pool setup
         require(_taxRate < 10000, "tax equal or bigger to 100%");
         //require(_taxCollectorAddress != address(0), "tax collector address must be non-zero address");
@@ -87,9 +123,16 @@ contract Tomb is ERC20Burnable, Operator {
         return excludedAddresses[_address];
     }
 
-    function setTaxTiersTwap(uint8 _index, uint256 _value) public onlyTaxOffice returns (bool) {
+    function setTaxTiersTwap(uint8 _index, uint256 _value)
+        public
+        onlyTaxOffice
+        returns (bool)
+    {
         require(_index >= 0, "Index has to be higher than 0");
-        require(_index < getTaxTiersTwapsCount(), "Index has to lower than count of tax tiers");
+        require(
+            _index < getTaxTiersTwapsCount(),
+            "Index has to lower than count of tax tiers"
+        );
         if (_index > 0) {
             require(_value > taxTiersTwaps[_index - 1]);
         }
@@ -100,30 +143,50 @@ contract Tomb is ERC20Burnable, Operator {
         return true;
     }
 
-    function setTaxTiersRate(uint8 _index, uint256 _value) public onlyTaxOffice returns (bool) {
+    function setTaxTiersRate(uint8 _index, uint256 _value)
+        public
+        onlyTaxOffice
+        returns (bool)
+    {
         require(_index >= 0, "Index has to be higher than 0");
-        require(_index < getTaxTiersRatesCount(), "Index has to lower than count of tax tiers");
+        require(
+            _index < getTaxTiersRatesCount(),
+            "Index has to lower than count of tax tiers"
+        );
         taxTiersRates[_index] = _value;
         return true;
     }
 
-    function setBurnThreshold(uint256 _burnThreshold) public onlyTaxOffice returns (bool) {
+    function setBurnThreshold(uint256 _burnThreshold)
+        public
+        onlyTaxOffice
+        returns (bool)
+    {
         burnThreshold = _burnThreshold;
     }
 
-    function _getTombPrice() internal view returns (uint256 _tombPrice) {
-        try IOracle(tombOracle).consult(address(this), 1e18) returns (uint144 _price) {
+    function _getDogPrice() internal view returns (uint256 _DogPrice) {
+        try IOracle(dogOracle).consult(address(this), 1e18) returns (
+            uint144 _price
+        ) {
             return uint256(_price);
         } catch {
-            revert("Tomb: failed to fetch TOMB price from Oracle");
+            revert("DICKDOG: failed to fetch DICKDOG price from Oracle");
         }
     }
 
-    function _updateTaxRate(uint256 _tombPrice) internal returns (uint256){
+    function _updateTaxRate(uint256 _DogPrice) internal returns (uint256) {
         if (autoCalculateTax) {
-            for (uint8 tierId = uint8(getTaxTiersTwapsCount()).sub(1); tierId >= 0; --tierId) {
-                if (_tombPrice >= taxTiersTwaps[tierId]) {
-                    require(taxTiersRates[tierId] < 10000, "tax equal or bigger to 100%");
+            for (
+                uint8 tierId = uint8(getTaxTiersTwapsCount()).sub(1);
+                tierId >= 0;
+                --tierId
+            ) {
+                if (_DogPrice >= taxTiersTwaps[tierId]) {
+                    require(
+                        taxTiersRates[tierId] < 10000,
+                        "tax equal or bigger to 100%"
+                    );
                     taxRate = taxTiersRates[tierId];
                     return taxTiersRates[tierId];
                 }
@@ -139,19 +202,28 @@ contract Tomb is ERC20Burnable, Operator {
         autoCalculateTax = false;
     }
 
-    function setTombOracle(address _tombOracle) public onlyOperatorOrTaxOffice {
-        require(_tombOracle != address(0), "oracle address cannot be 0 address");
-        tombOracle = _tombOracle;
+    function setDogOracle(address _dogOracle) public onlyOperatorOrTaxOffice {
+        require(_dogOracle != address(0), "oracle address cannot be 0 address");
+        dogOracle = _dogOracle;
     }
 
     function setTaxOffice(address _taxOffice) public onlyOperatorOrTaxOffice {
-        require(_taxOffice != address(0), "tax office address cannot be 0 address");
+        require(
+            _taxOffice != address(0),
+            "tax office address cannot be 0 address"
+        );
         emit TaxOfficeTransferred(taxOffice, _taxOffice);
         taxOffice = _taxOffice;
     }
 
-    function setTaxCollectorAddress(address _taxCollectorAddress) public onlyTaxOffice {
-        require(_taxCollectorAddress != address(0), "tax collector address must be non-zero address");
+    function setTaxCollectorAddress(address _taxCollectorAddress)
+        public
+        onlyTaxOffice
+    {
+        require(
+            _taxCollectorAddress != address(0),
+            "tax collector address must be non-zero address"
+        );
         taxCollectorAddress = _taxCollectorAddress;
     }
 
@@ -161,25 +233,37 @@ contract Tomb is ERC20Burnable, Operator {
         taxRate = _taxRate;
     }
 
-    function excludeAddress(address _address) public onlyOperatorOrTaxOffice returns (bool) {
+    function excludeAddress(address _address)
+        public
+        onlyOperatorOrTaxOffice
+        returns (bool)
+    {
         require(!excludedAddresses[_address], "address can't be excluded");
         excludedAddresses[_address] = true;
         return true;
     }
 
-    function includeAddress(address _address) public onlyOperatorOrTaxOffice returns (bool) {
+    function includeAddress(address _address)
+        public
+        onlyOperatorOrTaxOffice
+        returns (bool)
+    {
         require(excludedAddresses[_address], "address can't be included");
         excludedAddresses[_address] = false;
         return true;
     }
 
     /**
-     * @notice Operator mints TOMB to a recipient
+     * @notice Operator mints DICKDOG to a recipient
      * @param recipient_ The address of recipient
-     * @param amount_ The amount of TOMB to mint to
+     * @param amount_ The amount of DICKDOG to mint to
      * @return whether the process has been done
      */
-    function mint(address recipient_, uint256 amount_) public onlyOperator returns (bool) {
+    function mint(address recipient_, uint256 amount_)
+        public
+        onlyOperator
+        returns (bool)
+    {
         uint256 balanceBefore = balanceOf(recipient_);
         _mint(recipient_, amount_);
         uint256 balanceAfter = balanceOf(recipient_);
@@ -191,7 +275,11 @@ contract Tomb is ERC20Burnable, Operator {
         super.burn(amount);
     }
 
-    function burnFrom(address account, uint256 amount) public override onlyOperator {
+    function burnFrom(address account, uint256 amount)
+        public
+        override
+        onlyOperator
+    {
         super.burnFrom(account, amount);
     }
 
@@ -204,13 +292,12 @@ contract Tomb is ERC20Burnable, Operator {
         bool burnTax = false;
 
         if (autoCalculateTax) {
-            uint256 currentTombPrice = _getTombPrice();
+            uint256 currentTombPrice = _getDogPrice();
             currentTaxRate = _updateTaxRate(currentTombPrice);
             if (currentTombPrice < burnThreshold) {
                 burnTax = true;
             }
         }
-
 
         if (currentTaxRate == 0 || excludedAddresses[sender]) {
             _transfer(sender, recipient, amount);
@@ -218,7 +305,14 @@ contract Tomb is ERC20Burnable, Operator {
             _transferWithTax(sender, recipient, amount, burnTax);
         }
 
-        _approve(sender, _msgSender(), allowance(sender, _msgSender()).sub(amount, "ERC20: transfer amount exceeds allowance"));
+        _approve(
+            sender,
+            _msgSender(),
+            allowance(sender, _msgSender()).sub(
+                amount,
+                "ERC20: transfer amount exceeds allowance"
+            )
+        );
         return true;
     }
 
@@ -231,7 +325,7 @@ contract Tomb is ERC20Burnable, Operator {
         uint256 taxAmount = amount.mul(taxRate).div(10000);
         uint256 amountAfterTax = amount.sub(taxAmount);
 
-        if(burnTax) {
+        if (burnTax) {
             // Burn tax
             super.burnFrom(sender, taxAmount);
         } else {
@@ -248,11 +342,12 @@ contract Tomb is ERC20Burnable, Operator {
     /**
      * @notice distribute to reward pool (only once)
      */
-    function distributeReward(
-        address _genesisPool
+    function distributeReward(address _genesisPool)
+        external
         //address _tombPool,
         //address _airdropWallet
-    ) external onlyOperator {
+        onlyOperator
+    {
         require(!rewardPoolDistributed, "only can distribute once");
         require(_genesisPool != address(0), "!_genesisPool");
         //require(_tombPool != address(0), "!_tombPool");

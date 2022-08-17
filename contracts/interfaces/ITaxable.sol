@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.12;
+pragma solidity >=0.6.0 <0.8.0;
 
 interface ITaxable {
     function setTaxTiersTwap(uint8 _index, uint256 _value) external returns (bool);
@@ -21,7 +21,7 @@ interface ITaxable {
 
     function includeAddress(address _address) external returns (bool);
 
-    function setTombOracle(address _tombOracle) external;
+    function setPolyOracle(address _tombOracle) external;
 
     function setTaxOffice(address _taxOffice) external;
 }
