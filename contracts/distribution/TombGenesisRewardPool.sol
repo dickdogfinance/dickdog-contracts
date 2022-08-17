@@ -9,7 +9,7 @@ import "../owner/Operator.sol";
 
 // Note that this pool has no minter key of dog (rewards).
 // Instead, the governance will call dog distributeReward method and send reward to this pool at the beginning.
-contract Genesis is Operator {
+contract DogGenesis is Operator {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
